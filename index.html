@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroSense - Crop Disease Detection & Farmer Advisory</title>
+  <style>
+    :root {
+      --primary: #235331;
+      --primary-light: #2e7d32;
+      --bg-gradient-start: #e8f5e9;
+      --bg-gradient-end: #c8e6c9;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      min-height: 100vh;
+      padding: 24px 16px;
+      color: var(--text-main);
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 32px 24px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .banner {
+      background: #f1f8f3;
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: #1b5e20;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label {
+      font-weight: 700;
+      font-size: 15px;
+      color: #0f172a;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      margin-top: -4px;
+    }
+
+    /* Crop selector grid */
+    .crop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .crop-item {
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .crop-item:hover {
+      border-color: var(--primary-light);
+      background: #f7fdf8;
+    }
+
+    .crop-item.selected {
+      border-color: var(--primary-light);
+      background: #2e7d32;
+      color: #fff;
+      font-weight: 700;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+    }
+
+    .crop-item .crop-icon {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .crop-item .crop-name {
+      font-size: 13px;
+    }
+
+    /* Upload Box */
+    .upload-box {
+      border: 2px dashed #81c784;
+      background: #f8fdf6;
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 20px;
+    }
+
+    .upload-box:hover {
+      background: #eef9eb;
+    }
+
+    .upload-box img {
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 10px;
+      margin-top: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Symptom Chips */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .chip {
+      padding: 9px 16px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      font-weight: 500;
+      color: #334155;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .chip:hover {
+      border-color: var(--primary-light);
+    }
+
+    .chip.selected {
+      background: #2e7d32;
+      color: #ffffff;
+      border-color: #2e7d32;
+      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.25);
+    }
+
+    .clear-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    /* Main Button */
+    .analyze-btn {
+      width: 100%;
+      padding: 16px;
+      background: #2e7d32;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(46, 125, 50, 0.3);
+    }
+
+    .analyze-btn:hover {
+      background: #235331;
+      transform: translateY(-1px);
+    }
+
+    .analyze-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Results */
+    #results {
+      margin-top: 28px;
+    }
+
+    .result-card {
+      background: #fafdf9;
+      border: 1.5px solid #d8eed8;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card-header h3 {
+      font-size: 18px;
+      color: #1e3a1e;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge.high { background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; }
+    .badge.medium { background: #fff3e0; color: #f57c00; border: 1px solid #ffe0b2; }
+    .badge.low { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+
+    .confidence-wrap {
+      margin: 10px 0 16px 0;
+    }
+
+    .confidence-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2e7d32;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #2e7d32;
+      border-radius: 4px;
+      transition: width 0.5s ease-out;
+    }
+
+    .info-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .info-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    ul.advice-list {
+      padding-left: 20px;
+      color: #475569;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+
+    .empty-state {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      color: #92400e;
+      font-size: 14px;
+    }
+
+    .disclaimer {
+      font-size: 12px;
+      color: #64748b;
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 20px;
+      text-align: center;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo-badge">🌾</div>
+    <h1>AgroSense</h1>
+    <p class="subtitle">AI & Rule-Based Crop Disease Detection & Farmer Advisory Platform</p>
+  </header>
+
+  <div class="banner">
+    <span>💡</span>
+    <span><strong>Self-Contained & Offline-Ready:</strong> Works entirely in the client without requiring external API keys.</span>
+  </div>
+
+  <div class="section-label">1. Select Affected Crop</div>
+  <p class="section-desc">Choose the crop currently displaying symptoms</p>
+  <div class="crop-grid" id="cropGrid"></div>
+
+  <div class="section-label">Crop Photo Reference (Optional)</div>
+  <p class="section-desc">Add a photo of the affected leaf or stem for visual reference</p>
+  <div class="upload-box" onclick="document.getElementById('imgInput').click()">
+    <span id="uploadText">📷 Click or tap to upload affected crop photo</span>
+    <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="previewImage(event)">
+    <div id="imgPreviewWrap"></div>
+  </div>
+
+  <div class="section-label">
+    <span>2. Observed Symptoms</span>
+    <button type="button" class="clear-btn" id="clearBtn" style="display:none" onclick="clearAllSymptoms()">Clear All</button>
+  </div>
+  <p class="section-desc">Select all symptoms observed on leaves, stems, or fruits</p>
+  <div class="chips" id="symptomChips"></div>
+
+  <button class="analyze-btn" onclick="detectDisease()">
+    <span>🩺</span> Analyze & Get Advisory
+  </button>
+
+  <div id="results"></div>
+
+  <div class="disclaimer">
+    ⚠️ <strong>Advisory Notice:</strong> This platform provides preliminary agricultural recommendations based on observed symptom patterns. For laboratory-confirmed diagnosis and exact chemical dosing, please consult your local Agricultural Extension Officer.
+  </div>
+</div>
+
+<script>
+const cropsList = [
+  { id: "tomato", name: "Tomato", icon: "🍅" },
+  { id: "rice", name: "Rice", icon: "🌾" },
+  { id: "wheat", name: "Wheat", icon: "🌾" },
+  { id: "cotton", name: "Cotton", icon: "☁️" },
+  { id: "potato", name: "Potato", icon: "🥔" },
+  { id: "chilli", name: "Chilli", icon: "🌶️" },
+  { id: "sugarcane", name: "Sugarcane", icon: "🎋" }
+];
+
+const symptomList = [
+  "Yellow leaves", "Brown spots", "Leaf curling", "Wilting",
+  "White powdery coating", "Black spots", "Holes in leaves",
+  "Stunted growth", "Rotting stem", "Rust colored patches"
+];
+
+const diseaseDB = [
+  {
+    name: "Early Blight",
+    crops: ["tomato", "potato"],
+    symptoms: ["Brown spots", "Yellow leaves", "Wilting"],
+    severity: "medium",
+    treatment: ["Remove and destroy infected leaves", "Apply copper-based fungicide", "Avoid overhead watering"],
+    prevention: ["Rotate crops every season", "Ensure proper plant spacing for airflow", "Use disease-resistant varieties"]
+  },
+  {
+    name: "Powdery Mildew",
+    crops: ["tomato", "chilli", "cotton"],
+    symptoms: ["White powdery coating", "Leaf curling", "Stunted growth"],
+    severity: "low",
+    treatment: ["Spray sulfur-based fungicide", "Improve air circulation", "Remove heavily infected leaves"],
+    prevention: ["Avoid excess nitrogen fertilizer", "Water at the base, not on leaves", "Plant in sunny, well-ventilated areas"]
+  },
+  {
+    name: "Bacterial Leaf Blight",
+    crops: ["rice"],
+    symptoms: ["Yellow leaves", "Wilting", "Brown spots"],
+    severity: "high",
+    treatment: ["Drain excess water from field", "Apply copper oxychloride spray", "Remove infected plants immediately"],
+    prevention: ["Use certified disease-free seeds", "Avoid excess nitrogen", "Maintain proper field drainage"]
+  },
+  {
+    name: "Rust Disease",
+    crops: ["wheat", "sugarcane"],
+    symptoms: ["Rust colored patches", "Yellow leaves", "Stunted growth"],
+    severity: "high",
+    treatment: ["Apply triazole fungicide", "Remove volunteer plants that host rust", "Increase potassium fertilization"],
+    prevention: ["Grow rust-resistant varieties", "Time sowing to avoid peak rust season", "Monitor fields weekly"]
+  },
+  {
+    name: "Leaf Curl Virus",
+    crops: ["chilli", "tomato", "cotton"],
+    symptoms: ["Leaf curling", "Stunted growth", "Yellow leaves"],
+    severity: "high",
+    treatment: ["Remove and burn infected plants", "Control whitefly population with neem oil", "Use yellow sticky traps"],
+    prevention: ["Use virus-resistant seed varieties", "Cover nursery with insect-proof net", "Avoid planting near infected fields"]
+  },
+  {
+    name: "Root/Stem Rot",
+    crops: ["potato", "sugarcane", "cotton"],
+    symptoms: ["Rotting stem", "Wilting", "Stunted growth"],
+    severity: "high",
+    treatment: ["Improve field drainage immediately", "Apply Trichoderma-based bio-fungicide", "Remove and destroy rotted plants"],
+    prevention: ["Avoid waterlogging", "Treat seeds with fungicide before sowing", "Practice crop rotation"]
+  },
+  {
+    name: "Leaf Spot Disease",
+    crops: ["rice", "wheat", "cotton", "sugarcane"],
+    symptoms: ["Black spots", "Holes in leaves", "Brown spots"],
+    severity: "medium",
+    treatment: ["Apply mancozeb fungicide spray", "Remove affected leaves", "Ensure balanced fertilization"],
+    prevention: ["Avoid dense planting", "Use clean, certified seeds", "Rotate with non-host crops"]
+  }
+];
+
+let selectedCrop = "tomato";
+let selectedSymptoms = [];
+
+function renderCrops() {
+  const container = document.getElementById('cropGrid');
+  container.innerHTML = '';
+  cropsList.forEach(crop => {
+    const el = document.createElement('div');
+    el.className = 'crop-item' + (crop.id === selectedCrop ? ' selected' : '');
+    el.innerHTML = `<span class="crop-icon">${crop.icon}</span><span class="crop-name">${crop.name}</span>`;
+    el.onclick = () => {
+      selectedCrop = crop.id;
+      renderCrops();
+      if (document.getElementById('results').innerHTML !== "") {
+        detectDisease();
+      }
+    };
+    container.appendChild(el);
+  });
+}
+
+function renderChips() {
+  const container = document.getElementById('symptomChips');
+  container.innerHTML = '';
+  symptomList.forEach(symptom => {
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (selectedSymptoms.includes(symptom) ? ' selected' : '');
+    chip.textContent = symptom;
+    chip.onclick = () => toggleSymptom(symptom);
+    container.appendChild(chip);
+  });
+  document.getElementById('clearBtn').style.display = selectedSymptoms.length > 0 ? 'inline-block' : 'none';
+}
+
+function toggleSymptom(symptom) {
+  if (selectedSymptoms.includes(symptom)) {
+    selectedSymptoms = selectedSymptoms.filter(s => s !== symptom);
+  } else {
+    selectedSymptoms.push(symptom);
+  }
+  renderChips();
+}
+
+function clearAllSymptoms() {
+  selectedSymptoms = [];
+  renderChips();
+  document.getElementById('results').innerHTML = '';
+}
+
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('uploadText').textContent = '✅ Photo Loaded: ' + file.name;
+    document.getElementById('imgPreviewWrap').innerHTML = `<img src="${e.target.result}" alt="Crop leaf preview">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function detectDisease() {
+  const resultsDiv = document.getElementById('results');
+
+  if (selectedSymptoms.length === 0) {
+    resultsDiv.innerHTML = '<div class="empty-state">⚠️ Please select at least one observed symptom above.</div>';
+    return;
+  }
+
+  const matches = diseaseDB
+    .filter(d => d.crops.includes(selectedCrop))
+    .map(d => {
+      const matchCount = d.symptoms.filter(s => selectedSymptoms.includes(s)).length;
+      const confidence = Math.round((matchCount / d.symptoms.length) * 100);
+      return { ...d, matchCount, confidence };
+    })
+    .filter(d => d.matchCount > 0)
+    .sort((a, b) => b.confidence - a.confidence);
+
+  if (matches.length === 0) {
+    resultsDiv.innerHTML = '<div class="empty-state">ℹ️ No known high-confidence disease pattern matched this crop with the selected symptoms. Check for other pests or consult your local Agricultural Extension Officer.</div>';
+    return;
+  }
+
+  resultsDiv.innerHTML = matches.slice(0, 3).map(d => `
+    <div class="result-card">
+      <div class="card-header">
+        <h3>${d.name}</h3>
+        <span class="badge ${d.severity}">${d.severity.toUpperCase()} RISK</span>
+      </div>
+
+      <div class="confidence-wrap">
+        <div class="confidence-text">
+          <span>${d.confidence}% symptom match confidence</span>
+          <span>${d.matchCount}/${d.symptoms.length} symptoms</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${d.confidence}%"></div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-title">🩺 Recommended Treatment</div>
+        <ul class="advice-list">
+          ${d.treatment.map(t => `<li>${t}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="info-box">
+        <div class="info-title">🛡️ Prevention Tips</div>
+        <ul class="advice-list">
+          ${d.prevention.map(p => `<li>${p}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `).join('');
+}
+
+renderCrops();
+renderChips();
+</script>
+
+</body>
+</html>
